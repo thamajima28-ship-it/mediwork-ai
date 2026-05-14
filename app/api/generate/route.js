@@ -21,15 +21,17 @@ export async function POST(request) {
       }),
     });
 
-    const data = await response.json();
+    const text = await response.text();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || "API error");
+      return Response.json({ error: text }, { status: 500 });
     }
 
-    return Response.json({
-      content: data.content[0].text,
-    });
+    const data = JSON.parse(text);
+    const content = data?.content?.[0]?.text || "生成に失敗しました";
+
+    return Response.json({ content });
+
   } catch (error) {
     return Response.json(
       { error: error.message },
