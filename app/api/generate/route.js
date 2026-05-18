@@ -1,41 +1,32 @@
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
 export async function POST(request) {
   try {
-    const { systemPrompt } = await request.json();
+    const { prompt } = await request.json();
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    
-    if (!apiKey) {
-      return Response.json({ error: "API key not found" }, { status: 500 });
+    if (!prompt) {
+      return Response.json({ error: "promptが必要です" }, { status: 400 });
     }
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        "model": "claude-3-5-sonnet-20241022",
-        max_tokens: 2000,
-        messages: [{ role: "user", content: systemPrompt }],
-      }),
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1500,
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const text = await response.text();
-    console.log("API Response status:", response.status);
-    console.log("API Response body:", text);
+    const text = message.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join("");
 
-    if (!response.ok) {
-      return Response.json({ error: `API Error: ${text}` }, { status: 500 });
-    }
-
-    const data = JSON.parse(text);
-    const content = data?.content?.[0]?.text || "生成に失敗しました";
-    return Response.json({ content });
-
-  } catch (error) {
-    console.log("Catch error:", error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ text });
+  } catch (e) {
+    return Response.json(
+      { error: e.message || "生成に失敗しました" },
+      { status: 500 }
+    );
   }
 }
