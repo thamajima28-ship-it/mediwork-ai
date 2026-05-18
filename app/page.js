@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
 
-// ─── データ定義 ───────────────────────────────────────
 const PROFS = [
   { id:"nurse", label:"看護師",     icon:"🩺", desc:"症例報告・看護研究・実践報告" },
   { id:"pt",    label:"理学療法士", icon:"🦵", desc:"運動器・神経疾患・循環器リハ" },
@@ -26,13 +25,12 @@ const FIELDS = {
 const WORD_LIMITS = ["400字以内","500字以内","600字以内","800字以内","1000字以内","指定なし"];
 const GENDERS     = ["男性","女性","記載なし"];
 const AGE_GROUPS  = ["10歳代","20歳代","30歳代","40歳代","50歳代","60歳代","70歳代","80歳代","90歳代以上","記載なし"];
+const PROF_LABEL  = { nurse:"看護師", pt:"理学療法士", ot:"作業療法士", st:"言語聴覚士" };
 
-const PROF_LABEL = { nurse:"看護師", pt:"理学療法士", ot:"作業療法士", st:"言語聴覚士" };
-
-// サンプル入力
 const SAMPLES = {
   nurse: {
-    disease:"急性心不全",
+    disease:"急性心不全", category:"症例報告", field:"循環器",
+    gender:"男性", age:"90歳代以上", wordLimit:"800字以内",
     titleImg:"家族指導を中心とした退院支援による再入院予防",
     background:"同疾患の再入院が3ヶ月で5件続いた。従来の口頭説明だけでは理解が定着しないと感じていた。特に超高齢者では本人への指導に限界があり、家族を巻き込んだアプローチが必要と考えた。",
     intervention:"退院3日前より本人・妻にパンフレットを使用し、体重測定・塩分制限を計8回指導。毎回理解度を確認し、体重管理チェックシートを作成・配布した。",
@@ -40,11 +38,10 @@ const SAMPLES = {
     numbers:"入院期間14日、指導8回実施、退院後3ヶ月観察",
     uniqueness:"家族（妻）を全指導に同席させ、実技指導を繰り返したことで介護力が向上した。",
     difference:"患者本人だけでなく妻が積極的に質問するようになった。",
-    wordLimit:"800字以内", gender:"男性", age:"90歳代以上",
-    category:"症例報告", field:"循環器",
   },
   pt: {
-    disease:"脳梗塞（左片麻痺）",
+    disease:"脳梗塞（左片麻痺）", category:"症例報告", field:"神経疾患",
+    gender:"男性", age:"70歳代", wordLimit:"600字以内",
     titleImg:"感覚フィードバック訓練による歩行能力改善",
     background:"入院60日経過しても歩行能力が改善せず、評価を再検討した結果、筋力よりも感覚障害が主因と判明した。",
     intervention:"感覚フィードバック訓練を週5回×8週間実施。BBS・10m歩行・TUGで介入前後を比較評価した。",
@@ -52,11 +49,10 @@ const SAMPLES = {
     numbers:"入院60日、訓練週5回×8週、BBS/TUG/10m歩行で評価",
     uniqueness:"筋力訓練ではなく感覚フィードバックに着目した点が従来と異なる。",
     difference:"患者が自主訓練を積極的に行うようになった。",
-    wordLimit:"600字以内", gender:"男性", age:"70歳代",
-    category:"症例報告", field:"神経疾患",
   },
   ot: {
-    disease:"脳出血（右片麻痺・高次脳機能障害）",
+    disease:"脳出血（右片麻痺・高次脳機能障害）", category:"症例報告", field:"高次脳機能障害",
+    gender:"女性", age:"60歳代", wordLimit:"600字以内",
     titleImg:"作業の意味づけを活用した食事動作自立への介入",
     background:"反復練習では食事動作が自立せず、入院6週時点でFIM食事項目3点と改善が乏しかった。",
     intervention:"患者の好きな活動（料理）を訓練に取り入れ、週5回実施。FIM・MAMSで経過評価した。",
@@ -64,11 +60,10 @@ const SAMPLES = {
     numbers:"入院45日、訓練週5回×6週、FIM/MAMSで評価",
     uniqueness:"作業の意味づけを重視し、患者が好きな活動を訓練に取り入れた。",
     difference:"患者の表情が明るくなり「やる気が出た」と話してくれた。",
-    wordLimit:"600字以内", gender:"女性", age:"60歳代",
-    category:"症例報告", field:"高次脳機能障害",
   },
   st: {
-    disease:"脳梗塞後遺症（嚥下障害・FILS Lv.3）",
+    disease:"脳梗塞後遺症（嚥下障害・FILS Lv.3）", category:"症例報告", field:"嚥下障害",
+    gender:"女性", age:"80歳代", wordLimit:"600字以内",
     titleImg:"段階的食形態移行による経口摂取再開への取り組み",
     background:"入院時より誤嚥性肺炎を反復し、VF検査で咽頭残留を認めた。経口摂取再開に向けた訓練選択が課題となった。",
     intervention:"姿勢調整と食形態の段階的変更を組み合わせ、間接・直接訓練を週5回実施。FILS・EATINGで経過評価した。",
@@ -76,8 +71,6 @@ const SAMPLES = {
     numbers:"入院30日、訓練週5回×4週、VF2回実施",
     uniqueness:"姿勢調整と食形態の段階的変更を組み合わせた点が他と異なる。",
     difference:"患者が「食べることが楽しみになった」と話してくれた。",
-    wordLimit:"600字以内", gender:"女性", age:"80歳代",
-    category:"症例報告", field:"嚥下障害",
   },
 };
 
@@ -140,149 +133,176 @@ const checkIssues = (f) => {
   return issues;
 };
 
-// ─── スタイル定義 ───────────────────────────────────────
+// ── カラートークン（ミントグリーン統一）──
+const C = {
+  mint:      "#10b981",
+  mintDark:  "#059669",
+  mintDeep:  "#065f46",
+  mintLight: "#d1fae5",
+  mintPale:  "#f0fdf4",
+  mintBorder:"#a7f3d0",
+  navy:      "#0f2744",
+  navyLight: "#1a3a5c",
+  white:     "#ffffff",
+  gray50:    "#f8fafc",
+  gray100:   "#f1f5f9",
+  gray200:   "#e2e8f0",
+  gray400:   "#94a3b8",
+  gray600:   "#475569",
+  gray700:   "#334155",
+  gray900:   "#0f172a",
+  red:       "#dc2626",
+  redLight:  "#fee2e2",
+  redBorder: "#fca5a5",
+  amber:     "#d97706",
+  amberLight:"#fef3c7",
+  amberBorder:"#fde68a",
+};
+
 const s = {
-  // レイアウト
-  root:      { minHeight:"100vh", background:"#f8fafc", fontFamily:"'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif", color:"#1e293b" },
-  wrap:      { maxWidth:760, margin:"0 auto", padding:"0 0 80px" },
+  root:      { minHeight:"100vh", background:C.gray50, fontFamily:"'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif", color:C.gray900 },
+  wrap:      { maxWidth:780, margin:"0 auto", paddingBottom:80 },
 
   // トップバー
-  topBar:    { background:"#1e3a5f", padding:"12px 28px", display:"flex", alignItems:"center", justifyContent:"space-between" },
-  topLogo:   { color:"#fff", fontWeight:900, fontSize:16, letterSpacing:"0.05em" },
-  topBadge:  { background:"rgba(255,255,255,0.15)", color:"#e2e8f0", fontSize:11, fontWeight:700, padding:"3px 12px", borderRadius:20, letterSpacing:"0.08em" },
+  topBar:    { background:C.navy, padding:"13px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 2px 8px rgba(0,0,0,0.18)" },
+  topLeft:   { display:"flex", alignItems:"center", gap:10 },
+  topDot:    { width:10, height:10, borderRadius:"50%", background:C.mint, boxShadow:`0 0 8px ${C.mint}` },
+  topLogo:   { color:C.white, fontWeight:900, fontSize:17, letterSpacing:"0.06em" },
+  topBadge:  { background:"rgba(16,185,129,0.18)", color:C.mintLight, fontSize:11, fontWeight:700, padding:"4px 14px", borderRadius:20, letterSpacing:"0.08em", border:`1px solid rgba(16,185,129,0.3)` },
 
   // 注意バナー
-  noticeBanner: { background:"#fefce8", borderBottom:"1px solid #fde047", padding:"8px 28px", display:"flex", alignItems:"center", gap:8 },
-  noticeText:   { fontSize:12, color:"#854d0e", fontWeight:500 },
+  noticeBanner:{ background:C.amberLight, borderBottom:`1px solid ${C.amberBorder}`, padding:"9px 28px", display:"flex", alignItems:"center", gap:8 },
+  noticeText:  { fontSize:12, color:C.amber, fontWeight:600 },
 
-  // ヒーローセクション
-  hero:      { background:"linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 100%)", padding:"40px 28px 36px", color:"#fff" },
-  heroTag:   { display:"inline-block", background:"rgba(255,255,255,0.15)", fontSize:11, fontWeight:700, padding:"4px 14px", borderRadius:20, marginBottom:14, letterSpacing:"0.1em" },
-  heroH1:    { fontSize:28, fontWeight:900, margin:"0 0 10px", lineHeight:1.3 },
-  heroSub:   { fontSize:14, color:"rgba(255,255,255,0.75)", margin:"0 0 24px", lineHeight:1.7 },
-  heroFeats: { display:"flex", gap:20, flexWrap:"wrap" },
-  heroFeat:  { display:"flex", alignItems:"center", gap:6, fontSize:13, color:"rgba(255,255,255,0.85)" },
-
-  // サンプルバナー
-  sampleBanner: { background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:10, padding:"14px 18px", marginBottom:20, display:"flex", alignItems:"flex-start", gap:12 },
-  sampleTitle:  { fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:4 },
-  sampleText:   { fontSize:12, color:"#3b82f6", lineHeight:1.6 },
+  // ヒーロー
+  hero:      { background:`linear-gradient(135deg, ${C.navy} 0%, ${C.navyLight} 60%, #0d4f3c 100%)`, padding:"44px 28px 40px", position:"relative", overflow:"hidden" },
+  heroBg:    { position:"absolute", top:-60, right:-60, width:300, height:300, borderRadius:"50%", background:"rgba(16,185,129,0.07)", pointerEvents:"none" },
+  heroBg2:   { position:"absolute", bottom:-40, left:-40, width:200, height:200, borderRadius:"50%", background:"rgba(16,185,129,0.05)", pointerEvents:"none" },
+  heroTag:   { display:"inline-flex", alignItems:"center", gap:6, background:"rgba(16,185,129,0.2)", border:`1px solid rgba(16,185,129,0.4)`, color:C.mintLight, fontSize:11, fontWeight:700, padding:"5px 14px", borderRadius:20, marginBottom:16, letterSpacing:"0.1em" },
+  heroH1:    { fontSize:30, fontWeight:900, color:C.white, margin:"0 0 12px", lineHeight:1.3, letterSpacing:"-0.01em" },
+  heroH1Accent:{ color:C.mint },
+  heroSub:   { fontSize:14, color:"rgba(255,255,255,0.7)", margin:"0 0 28px", lineHeight:1.8 },
+  heroFeats: { display:"flex", gap:0, flexWrap:"wrap", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, overflow:"hidden" },
+  heroFeat:  { flex:"1 1 40%", display:"flex", alignItems:"center", gap:8, fontSize:13, color:"rgba(255,255,255,0.85)", padding:"12px 16px", borderRight:"1px solid rgba(255,255,255,0.08)", fontWeight:500 },
+  heroFeatIcon:{ fontSize:16 },
 
   // ステップ
-  stepsWrap:  { background:"#fff", borderBottom:"1px solid #e2e8f0", padding:"16px 28px", display:"flex", alignItems:"center", gap:0, position:"sticky", top:0, zIndex:100, boxShadow:"0 1px 4px rgba(0,0,0,0.06)" },
-  stepItem:   { display:"flex", alignItems:"center", gap:8 },
-  stepCircle: { width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, flexShrink:0 },
-  stepActive: { background:"#1d4ed8", color:"#fff" },
-  stepDone:   { background:"#16a34a", color:"#fff" },
-  stepOff:    { background:"#e2e8f0", color:"#94a3b8" },
-  stepLabel:  { fontSize:12, color:"#64748b", fontWeight:500 },
-  stepLabelActive: { color:"#1d4ed8", fontWeight:700 },
-  stepLine:   { flex:1, height:2, background:"#e2e8f0", margin:"0 10px" },
-  stepLineDone:{ background:"#16a34a" },
+  stepsWrap: { background:C.white, borderBottom:`1px solid ${C.gray200}`, padding:"0 28px", display:"flex", alignItems:"stretch", position:"sticky", top:0, zIndex:100, boxShadow:"0 2px 6px rgba(0,0,0,0.06)" },
+  stepItem:  { display:"flex", alignItems:"center", gap:8, padding:"14px 0", flex:1 },
+  stepCircle:{ width:28, height:28, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:900, flexShrink:0, transition:"all 0.2s" },
+  stepActive:{ background:C.mint, color:C.white, boxShadow:`0 2px 8px rgba(16,185,129,0.4)` },
+  stepDone:  { background:C.mintDeep, color:C.white },
+  stepOff:   { background:C.gray200, color:C.gray400 },
+  stepLabel: { fontSize:12, color:C.gray400, fontWeight:600 },
+  stepLabelA:{ color:C.mintDark, fontWeight:800 },
+  stepLine:  { flex:1, height:2, background:C.gray200, margin:"0 12px", borderRadius:2 },
+  stepLineDone:{ background:C.mint },
 
   // カード
-  card:      { background:"#fff", border:"1px solid #e2e8f0", borderRadius:12, padding:"28px", margin:"20px 20px 0", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" },
-  cardTitle: { fontSize:17, fontWeight:800, color:"#1e293b", margin:"0 0 6px", display:"flex", alignItems:"center", gap:8 },
-  cardSub:   { fontSize:13, color:"#64748b", margin:"0 0 24px", lineHeight:1.7 },
+  card:      { background:C.white, border:`1px solid ${C.gray200}`, borderRadius:16, padding:"28px 28px", margin:"20px 20px 0", boxShadow:"0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)" },
+  cardTitle: { fontSize:18, fontWeight:900, color:C.gray900, margin:"0 0 6px", display:"flex", alignItems:"center", gap:10, letterSpacing:"-0.01em" },
+  cardTitleBar:{ width:4, height:20, background:C.mint, borderRadius:2, flexShrink:0 },
+  cardSub:   { fontSize:13, color:C.gray600, margin:"0 0 24px", lineHeight:1.8, paddingLeft:14 },
 
   // セクション
-  sec:       { marginBottom:22 },
-  lbl:       { display:"block", fontSize:13, fontWeight:700, color:"#334155", marginBottom:8 },
-  req:       { color:"#dc2626", fontSize:11, marginLeft:4, fontWeight:700 },
-  opt:       { color:"#94a3b8", fontSize:11, marginLeft:4 },
-  hint:      { fontSize:12, color:"#64748b", margin:"-4px 0 8px", lineHeight:1.7, paddingLeft:10, borderLeft:"3px solid #3b82f6" },
+  sec:       { marginBottom:24 },
+  lbl:       { display:"block", fontSize:13, fontWeight:800, color:C.gray700, marginBottom:8, letterSpacing:"0.01em" },
+  req:       { color:C.red, fontSize:11, marginLeft:4, fontWeight:700 },
+  opt:       { color:C.gray400, fontSize:11, marginLeft:4, fontWeight:500 },
+  hint:      { fontSize:12, color:C.gray600, margin:"-4px 0 10px", lineHeight:1.75, paddingLeft:10, borderLeft:`3px solid ${C.mint}` },
 
   // 職種カード
   profGrid:  { display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 },
-  profCard:  { display:"flex", alignItems:"center", gap:12, padding:"14px 16px", background:"#f8fafc", border:"2px solid #e2e8f0", borderRadius:10, cursor:"pointer", transition:"all 0.15s", textAlign:"left" },
-  profCardOn:{ background:"#eff6ff", borderColor:"#3b82f6" },
-  profIcon:  { fontSize:24, flexShrink:0 },
-  profLbl:   { fontSize:14, fontWeight:700, color:"#1e293b", marginBottom:2 },
-  profDesc:  { fontSize:11, color:"#64748b" },
+  profCard:  { display:"flex", alignItems:"center", gap:12, padding:"14px 16px", background:C.gray50, border:`2px solid ${C.gray200}`, borderRadius:12, cursor:"pointer", transition:"all 0.15s", textAlign:"left", width:"100%" },
+  profCardOn:{ background:C.mintPale, borderColor:C.mint, boxShadow:`0 0 0 3px rgba(16,185,129,0.1)` },
+  profIcon:  { fontSize:26, flexShrink:0 },
+  profLbl:   { fontSize:14, fontWeight:800, color:C.gray900, marginBottom:2 },
+  profDesc:  { fontSize:11, color:C.gray400, fontWeight:500 },
 
   // チップ
   chips:     { display:"flex", flexWrap:"wrap", gap:7 },
-  chip:      { padding:"6px 13px", borderRadius:7, border:"1px solid #e2e8f0", background:"#f8fafc", color:"#64748b", fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s", fontWeight:500 },
-  chipOn:    { background:"#eff6ff", borderColor:"#3b82f6", color:"#1d4ed8", fontWeight:700 },
+  chip:      { padding:"7px 14px", borderRadius:8, border:`1px solid ${C.gray200}`, background:C.gray50, color:C.gray600, fontSize:13, cursor:"pointer", fontFamily:"inherit", fontWeight:600, transition:"all 0.15s" },
+  chipOn:    { background:C.mintPale, borderColor:C.mint, color:C.mintDeep, fontWeight:800, boxShadow:`0 0 0 2px rgba(16,185,129,0.15)` },
 
   // 入力
-  inp:       { width:"100%", background:"#fff", border:"1px solid #e2e8f0", borderRadius:8, color:"#1e293b", fontSize:14, padding:"10px 13px", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" },
-  ta:        { width:"100%", background:"#fff", border:"1px solid #e2e8f0", borderRadius:8, color:"#1e293b", fontSize:14, padding:"10px 13px", resize:"vertical", outline:"none", fontFamily:"inherit", lineHeight:1.75, boxSizing:"border-box", transition:"border-color 0.15s" },
-  fieldBox:  { marginBottom:18, padding:"16px", background:"#f8fafc", borderRadius:10, border:"1px solid #e2e8f0" },
-  fieldErr:  { borderColor:"#fca5a5", background:"#fff5f5" },
+  inp:       { width:"100%", background:C.white, border:`1.5px solid ${C.gray200}`, borderRadius:9, color:C.gray900, fontSize:14, padding:"11px 14px", outline:"none", fontFamily:"inherit", boxSizing:"border-box", fontWeight:500, transition:"border-color 0.15s, box-shadow 0.15s" },
+  ta:        { width:"100%", background:C.white, border:`1.5px solid ${C.gray200}`, borderRadius:9, color:C.gray900, fontSize:14, padding:"11px 14px", resize:"vertical", outline:"none", fontFamily:"inherit", lineHeight:1.8, boxSizing:"border-box", fontWeight:500, transition:"border-color 0.15s, box-shadow 0.15s" },
+  fieldBox:  { marginBottom:18, padding:"18px", background:C.gray50, borderRadius:12, border:`1px solid ${C.gray200}` },
+  fieldErr:  { borderColor:C.redBorder, background:C.redLight },
+
+  // サンプルバナー
+  sampleBanner:{ background:C.mintPale, border:`1px solid ${C.mintBorder}`, borderRadius:12, padding:"14px 18px", marginBottom:24, display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" },
+  sampleInfo:  { flex:1 },
+  sampleTitle: { fontSize:13, fontWeight:800, color:C.mintDeep, marginBottom:3 },
+  sampleText:  { fontSize:12, color:C.mintDark, lineHeight:1.6 },
+  btnSample:   { padding:"9px 18px", background:C.mint, color:C.white, fontWeight:800, fontSize:12, border:"none", borderRadius:8, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", boxShadow:`0 2px 8px rgba(16,185,129,0.3)`, transition:"all 0.15s" },
 
   // ボタン
-  btnPrimary:{ display:"block", width:"100%", marginTop:24, padding:"14px", background:"#1d4ed8", color:"#fff", fontWeight:700, fontSize:15, border:"none", borderRadius:10, cursor:"pointer", fontFamily:"inherit", transition:"background 0.15s", letterSpacing:"0.02em" },
-  btnOff:    { background:"#94a3b8", cursor:"not-allowed" },
+  btnPrimary:{ display:"block", width:"100%", marginTop:26, padding:"15px", background:C.mint, color:C.white, fontWeight:900, fontSize:15, border:"none", borderRadius:11, cursor:"pointer", fontFamily:"inherit", letterSpacing:"0.03em", boxShadow:`0 4px 16px rgba(16,185,129,0.35)`, transition:"all 0.15s" },
+  btnOff:    { background:C.gray400, cursor:"not-allowed", boxShadow:"none" },
   navRow:    { display:"flex", gap:12, marginTop:24 },
-  btnBack:   { flex:"0 0 110px", padding:"13px", background:"#f1f5f9", color:"#64748b", fontWeight:600, fontSize:14, border:"1px solid #e2e8f0", borderRadius:10, cursor:"pointer", fontFamily:"inherit" },
-  btnSample: { padding:"8px 16px", background:"#eff6ff", color:"#1d4ed8", fontWeight:700, fontSize:12, border:"1px solid #bfdbfe", borderRadius:8, cursor:"pointer", fontFamily:"inherit" },
+  btnBack:   { flex:"0 0 110px", padding:"14px", background:C.gray100, color:C.gray600, fontWeight:700, fontSize:14, border:`1px solid ${C.gray200}`, borderRadius:10, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" },
 
   // バナー
-  issueBanner:{ background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:10, padding:"14px 18px", marginBottom:20 },
-  issueTitle: { color:"#c2410c", fontWeight:700, fontSize:14, margin:"0 0 4px" },
-  issueSub:   { color:"#9a3412", fontSize:12, margin:"0 0 8px" },
-  issueItem:  { color:"#c2410c", fontSize:12, margin:"3px 0" },
-  okBanner:   { background:"#f0fdf4", border:"1px solid #bbf7d0", borderRadius:10, padding:"13px 18px", marginBottom:20 },
-  okText:     { color:"#15803d", fontWeight:700, fontSize:13, margin:0 },
-  errMsg:     { color:"#dc2626", fontSize:13, margin:"0 0 10px", padding:"10px 14px", background:"#fff5f5", borderRadius:8, border:"1px solid #fca5a5" },
+  issueBanner:{ background:C.amberLight, border:`1px solid ${C.amberBorder}`, borderRadius:12, padding:"14px 18px", marginBottom:20 },
+  issueTitle: { color:C.amber, fontWeight:800, fontSize:14, margin:"0 0 4px" },
+  issueSub:   { color:"#92400e", fontSize:12, margin:"0 0 8px" },
+  issueItem:  { color:C.amber, fontSize:12, margin:"4px 0", fontWeight:600 },
+  okBanner:   { background:C.mintPale, border:`1px solid ${C.mintBorder}`, borderRadius:12, padding:"14px 18px", marginBottom:20, display:"flex", alignItems:"center", gap:10 },
+  okText:     { color:C.mintDeep, fontWeight:800, fontSize:13 },
+  errMsg:     { color:C.red, fontSize:13, margin:"0 0 12px", padding:"12px 16px", background:C.redLight, borderRadius:9, border:`1px solid ${C.redBorder}`, fontWeight:600 },
 
   // ローディング
-  loadWrap:  { textAlign:"center", padding:"56px 20px" },
-  ring:      { width:52, height:52, border:"3px solid #e2e8f0", borderTop:"3px solid #1d4ed8", borderRadius:"50%", animation:"spin 0.9s linear infinite", margin:"0 auto 24px" },
-  loadTitle: { fontSize:17, fontWeight:800, color:"#1e293b", marginBottom:8 },
-  loadMsg:   { fontSize:13, color:"#64748b", marginBottom:4 },
-  loadSub:   { fontSize:12, color:"#94a3b8" },
+  loadWrap:  { textAlign:"center", padding:"60px 20px" },
+  ringWrap:  { position:"relative", width:64, height:64, margin:"0 auto 28px" },
+  ring:      { width:64, height:64, border:`3px solid ${C.mintLight}`, borderTop:`3px solid ${C.mint}`, borderRadius:"50%", animation:"spin 0.85s linear infinite" },
+  ringDot:   { position:"absolute", top:3, left:"50%", transform:"translateX(-50%)", width:8, height:8, borderRadius:"50%", background:C.mint },
+  loadTitle: { fontSize:18, fontWeight:900, color:C.gray900, marginBottom:8, letterSpacing:"-0.01em" },
+  loadMsg:   { fontSize:13, color:C.mintDark, marginBottom:4, fontWeight:600 },
+  loadSub:   { fontSize:12, color:C.gray400 },
 
-  // 完了画面
-  resultHeader:{ background:"#f0fdf4", border:"1px solid #bbf7d0", borderRadius:10, padding:"16px 20px", marginBottom:20, display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12 },
-  resultTitle: { fontSize:17, fontWeight:900, color:"#15803d", marginBottom:4 },
-  resultSub:   { fontSize:12, color:"#166534" },
+  // 完了
+  resultHeader:{ background:C.mintPale, border:`1px solid ${C.mintBorder}`, borderRadius:12, padding:"18px 20px", marginBottom:20, display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12 },
+  resultTitle: { fontSize:18, fontWeight:900, color:C.mintDeep, marginBottom:4, letterSpacing:"-0.01em" },
+  resultSub:   { fontSize:12, color:C.mintDark, fontWeight:600 },
   actBtns:     { display:"flex", gap:8, flexWrap:"wrap" },
-  btnCopy:     { padding:"9px 16px", background:"#1d4ed8", color:"#fff", fontWeight:700, fontSize:13, border:"none", borderRadius:8, cursor:"pointer", fontFamily:"inherit" },
-  btnCopyDone: { background:"#16a34a" },
-  btnRegen:    { padding:"9px 16px", background:"#f1f5f9", color:"#334155", fontWeight:700, fontSize:13, border:"1px solid #e2e8f0", borderRadius:8, cursor:"pointer", fontFamily:"inherit" },
-  btnReset:    { padding:"9px 16px", background:"#fff", color:"#64748b", fontWeight:600, fontSize:13, border:"1px solid #e2e8f0", borderRadius:8, cursor:"pointer", fontFamily:"inherit" },
+  btnRegen:    { padding:"9px 18px", background:C.white, color:C.mintDark, fontWeight:800, fontSize:13, border:`1.5px solid ${C.mint}`, borderRadius:9, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" },
+  btnReset:    { padding:"9px 16px", background:C.white, color:C.gray600, fontWeight:700, fontSize:13, border:`1px solid ${C.gray200}`, borderRadius:9, cursor:"pointer", fontFamily:"inherit" },
 
-  // 出力エリア
-  charBar:     { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 },
-  charLabel:   { fontSize:12, color:"#64748b", fontWeight:600 },
-  charCount:   { fontSize:13, fontWeight:700, padding:"3px 12px", borderRadius:20 },
-  charOk:      { background:"#f0fdf4", color:"#16a34a", border:"1px solid #bbf7d0" },
-  charWarn:    { background:"#fff7ed", color:"#c2410c", border:"1px solid #fed7aa" },
+  charBar:     { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 },
+  charLabel:   { fontSize:12, color:C.gray600, fontWeight:700 },
+  charCount:   { fontSize:13, fontWeight:800, padding:"4px 14px", borderRadius:20 },
+  charOk:      { background:C.mintPale, color:C.mintDeep, border:`1px solid ${C.mintBorder}` },
+  charWarn:    { background:C.amberLight, color:C.amber, border:`1px solid ${C.amberBorder}` },
 
-  outputTa:    { width:"100%", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:10, padding:"16px", color:"#1e293b", fontSize:14, lineHeight:1.9, fontFamily:"'Noto Sans JP',sans-serif", boxSizing:"border-box", resize:"vertical", outline:"none", marginBottom:12, cursor:"text" },
-  copyAllBtn:  { width:"100%", padding:"12px", background:"#1e3a5f", color:"#fff", fontWeight:700, fontSize:14, border:"none", borderRadius:10, cursor:"pointer", fontFamily:"inherit", marginBottom:16 },
+  outputTa:    { width:"100%", background:C.gray50, border:`1.5px solid ${C.gray200}`, borderRadius:12, padding:"18px", color:C.gray900, fontSize:14, lineHeight:2, fontFamily:"'Noto Sans JP',sans-serif", boxSizing:"border-box", resize:"vertical", outline:"none", marginBottom:14, fontWeight:500 },
+  copyAllBtn:  { width:"100%", padding:"14px", background:C.mint, color:C.white, fontWeight:900, fontSize:14, border:"none", borderRadius:11, cursor:"pointer", fontFamily:"inherit", marginBottom:16, boxShadow:`0 4px 16px rgba(16,185,129,0.35)`, letterSpacing:"0.03em", transition:"all 0.15s" },
 
-  // アドバイスカード
-  adviceCard:  { background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:10, padding:"16px 18px", marginBottom:16 },
-  adviceTitle: { fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:8 },
-  adviceText:  { fontSize:13, color:"#1e40af", lineHeight:1.75 },
+  adviceCard:  { background:C.mintPale, border:`1px solid ${C.mintBorder}`, borderRadius:12, padding:"16px 18px", marginBottom:16 },
+  adviceTitle: { fontSize:13, fontWeight:800, color:C.mintDeep, marginBottom:8, display:"flex", alignItems:"center", gap:6 },
+  adviceText:  { fontSize:13, color:"#065f46cc", lineHeight:1.8 },
 
-  // 注意事項
-  disclaimer:  { background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:10, padding:"14px 18px", marginTop:16 },
-  disclaimerT: { fontSize:12, fontWeight:700, color:"#64748b", marginBottom:6 },
-  disclaimerL: { fontSize:11, color:"#94a3b8", lineHeight:1.8 },
+  disclaimer:  { background:C.gray50, border:`1px solid ${C.gray200}`, borderRadius:12, padding:"14px 18px", marginTop:8 },
+  disclaimerT: { fontSize:12, fontWeight:800, color:C.gray600, marginBottom:6 },
+  disclaimerL: { fontSize:11, color:C.gray400, lineHeight:1.9 },
 
-  // サマリータグ
   summary:     { display:"flex", flexWrap:"wrap", gap:7, marginBottom:16 },
-  tag:         { background:"#eff6ff", border:"1px solid #bfdbfe", color:"#1d4ed8", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20 },
+  tag:         { background:C.mintPale, border:`1px solid ${C.mintBorder}`, color:C.mintDeep, fontSize:11, fontWeight:800, padding:"4px 12px", borderRadius:20 },
 
   row2:        { display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 },
-  footer:      { textAlign:"center", marginTop:40, padding:"0 20px", color:"#94a3b8", fontSize:11, lineHeight:1.8 },
+  footer:      { textAlign:"center", marginTop:48, padding:"20px", color:C.gray400, fontSize:11, lineHeight:1.9, borderTop:`1px solid ${C.gray200}` },
 };
 
-// ─── メインコンポーネント ───────────────────────────────
 export default function App() {
-  const [page, setPage]         = useState(1);
-  const [form, setForm]         = useState({ gender:"記載なし", age:"記載なし" });
-  const [issues, setIssues]     = useState([]);
-  const [output, setOutput]     = useState("");
-  const [loading, setLoading]   = useState(false);
-  const [loadMsg, setLoadMsg]   = useState(0);
-  const [copied, setCopied]     = useState(false);
-  const [error, setError]       = useState("");
+  const [page, setPage]           = useState(1);
+  const [form, setForm]           = useState({ gender:"記載なし", age:"記載なし" });
+  const [issues, setIssues]       = useState([]);
+  const [output, setOutput]       = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [loadMsg, setLoadMsg]     = useState(0);
+  const [error, setError]         = useState("");
   const [charCount, setCharCount] = useState(0);
+  const [copiedAll, setCopiedAll] = useState(false);
   const timerRef = useRef(null);
 
   const p   = form.prof;
@@ -290,8 +310,7 @@ export default function App() {
 
   const loadSample = () => {
     if (!p) return;
-    const s = SAMPLES[p];
-    setForm(f => ({ ...f, ...s }));
+    setForm(f => ({ ...f, ...SAMPLES[p] }));
   };
 
   const goConfirm = () => {
@@ -322,7 +341,8 @@ export default function App() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "生成に失敗しました");
       setOutput(data.text);
-      setCharCount(extractAbstractBody(data.text).length);
+      const body = data.text.match(/【抄録本文】([\s\S]*)/);
+      setCharCount(body ? body[1].trim().length : data.text.length);
       setPage(3);
       window.scrollTo(0, 0);
     } catch (e) {
@@ -333,22 +353,15 @@ export default function App() {
     }
   };
 
-  const extractAbstractBody = (text) => {
-    const match = text.match(/【抄録本文】([\s\S]*)/);
-    return match ? match[1].trim() : text;
-  };
-
-  const copyText = (text, setter) => {
-    try { navigator.clipboard.writeText(text); } catch {}
+  const copyAll = () => {
+    try { navigator.clipboard.writeText(output); } catch {}
     const ta = document.createElement("textarea");
-    ta.value = text; document.body.appendChild(ta);
+    ta.value = output; document.body.appendChild(ta);
     ta.select(); document.execCommand("copy");
     document.body.removeChild(ta);
-    setter(true);
-    setTimeout(() => setter(false), 2500);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2500);
   };
-
-  const [copiedAll, setCopiedAll] = useState(false);
 
   const reset = () => {
     setForm({ gender:"記載なし", age:"記載なし" });
@@ -360,22 +373,18 @@ export default function App() {
   const fb = (field) => ({ ...s.fieldBox, ...(errFields.includes(field) && page===2 ? s.fieldErr : {}) });
 
   const Chip = ({ label, active, onClick }) => (
-    <button onClick={onClick}
-      style={{ ...s.chip, ...(active ? s.chipOn : {}) }}
-      onMouseOver={e => { if (!active) { e.target.style.borderColor="#3b82f6"; e.target.style.color="#1d4ed8"; }}}
-      onMouseOut={e  => { if (!active) { e.target.style.borderColor="#e2e8f0"; e.target.style.color="#64748b"; }}}
-    >{label}</button>
+    <button onClick={onClick} style={{ ...s.chip, ...(active ? s.chipOn : {}) }}>{label}</button>
   );
 
   const Steps = () => (
     <div style={s.stepsWrap}>
       {["入力","確認・修正","生成完了"].map((label, i) => (
-        <div key={i} style={{ display:"flex", alignItems:"center", flex: i<2?1:"auto" }}>
+        <div key={i} style={{ display:"flex", alignItems:"center", flex: i<2 ? 1 : "auto" }}>
           <div style={s.stepItem}>
             <div style={{ ...s.stepCircle, ...(page===i+1?s.stepActive:page>i+1?s.stepDone:s.stepOff) }}>
               {page > i+1 ? "✓" : i+1}
             </div>
-            <span style={{ ...s.stepLabel, ...(page===i+1?s.stepLabelActive:{}) }}>{label}</span>
+            <span style={{ ...s.stepLabel, ...(page===i+1?s.stepLabelA:{}) }}>{label}</span>
           </div>
           {i < 2 && <div style={{ ...s.stepLine, ...(page>i+1?s.stepLineDone:{}) }} />}
         </div>
@@ -383,27 +392,167 @@ export default function App() {
     </div>
   );
 
-  const wordLimitNum = () => {
-    const m = (form.wordLimit||"").match(/(\d+)/);
-    return m ? parseInt(m[1]) : 0;
-  };
-
   const CharBadge = () => {
-    const limit = wordLimitNum();
+    const m = (form.wordLimit||"").match(/(\d+)/);
+    const limit = m ? parseInt(m[1]) : 0;
     if (!limit || !charCount) return null;
     const over = charCount > limit;
     return (
       <span style={{ ...s.charCount, ...(over ? s.charWarn : s.charOk) }}>
-        {charCount} / {limit} 字 {over ? "⚠️ オーバー" : "✅ OK"}
+        {charCount} / {limit} 字　{over ? "⚠️ オーバー" : "✅ OK"}
       </span>
     );
   };
+
+  const InputForm = ({ isConfirm }) => (
+    <>
+      {/* サンプルバナー */}
+      {p && !isConfirm && (
+        <div style={s.sampleBanner}>
+          <span style={{ fontSize:22 }}>💡</span>
+          <div style={s.sampleInfo}>
+            <div style={s.sampleTitle}>入力例を参考にしますか？</div>
+            <div style={s.sampleText}>{PROF_LABEL[p]}向けのサンプルデータを一括入力できます。何を書けばいいか迷ったときにどうぞ。</div>
+          </div>
+          <button style={s.btnSample} onClick={loadSample}>サンプルを読み込む</button>
+        </div>
+      )}
+
+      {/* 職種 */}
+      <div style={fb("prof")}>
+        <label style={s.lbl}>職種 <span style={s.req}>必須</span></label>
+        <div style={s.profGrid}>
+          {PROFS.map(pr => (
+            <button key={pr.id} onClick={() => set("prof", pr.id)}
+              style={{ ...s.profCard, ...(form.prof===pr.id ? s.profCardOn : {}) }}>
+              <span style={s.profIcon}>{pr.icon}</span>
+              <div>
+                <div style={s.profLbl}>{pr.label}</div>
+                <div style={s.profDesc}>{pr.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {p && <>
+        <div style={fb("category")}>
+          <label style={s.lbl}>発表カテゴリ <span style={s.req}>必須</span></label>
+          <div style={s.chips}>
+            {CATEGORIES[p].map(o => <Chip key={o} label={o} active={form.category===o} onClick={() => set("category",o)} />)}
+          </div>
+        </div>
+
+        <div style={fb("field")}>
+          <label style={s.lbl}>診療科・領域 <span style={s.req}>必須</span></label>
+          <div style={s.chips}>
+            {FIELDS[p].map(o => <Chip key={o} label={o} active={form.field===o} onClick={() => set("field",o)} />)}
+          </div>
+        </div>
+
+        <div style={fb("disease")}>
+          <label style={s.lbl}>疾患・障害名 <span style={s.req}>必須</span></label>
+          <input style={s.inp} value={form.disease||""} onChange={e=>set("disease",e.target.value)}
+            placeholder="例：急性心不全、脳梗塞（左片麻痺）"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={s.row2}>
+          <div style={fb("gender")}>
+            <label style={s.lbl}>性別 <span style={s.opt}>任意</span></label>
+            <div style={s.chips}>{GENDERS.map(o => <Chip key={o} label={o} active={form.gender===o} onClick={() => set("gender",o)} />)}</div>
+          </div>
+          <div style={fb("age")}>
+            <label style={s.lbl}>年齢層 <span style={s.opt}>任意</span></label>
+            <div style={s.chips}>{AGE_GROUPS.map(o => <Chip key={o} label={o} active={form.age===o} onClick={() => set("age",o)} />)}</div>
+          </div>
+        </div>
+
+        <div style={fb("titleImg")}>
+          <label style={s.lbl}>タイトルのイメージ <span style={s.req}>必須</span></label>
+          <p style={s.hint}>キーワードでOKです。AIが3案に展開します</p>
+          <input style={s.inp} value={form.titleImg||""} onChange={e=>set("titleImg",e.target.value)}
+            placeholder="例：家族指導による再入院予防、感覚フィードバック訓練"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={fb("background")}>
+          <label style={s.lbl}>背景・動機・気づき <span style={s.req}>必須</span></label>
+          <p style={s.hint}>「なぜこの症例を発表しようと思ったか」「臨床上どんな問題・疑問があったか」を書いてください</p>
+          <textarea style={s.ta} rows={4} value={form.background||""} onChange={e=>set("background",e.target.value)}
+            placeholder="例：同疾患の再入院が続いた。従来の指導方法では理解が定着しないと感じた。"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={fb("intervention")}>
+          <label style={s.lbl}>介入・取り組みの内容 <span style={s.req}>必須</span></label>
+          <p style={s.hint}>何を・誰に・何回・どのように行ったか。回数・期間・評価指標があると質が上がります</p>
+          <textarea style={s.ta} rows={4} value={form.intervention||""} onChange={e=>set("intervention",e.target.value)}
+            placeholder="例：週5回×8週間、〇〇訓練を実施。BBS・TUGで介入前後を比較評価した。"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={fb("result")}>
+          <label style={s.lbl}>結果・成果 <span style={s.req}>必須</span></label>
+          <p style={s.hint}>数値（評価点数・期間・改善率）があると説得力が大幅に上がります</p>
+          <textarea style={s.ta} rows={4} value={form.result||""} onChange={e=>set("result",e.target.value)}
+            placeholder="例：BBS 32→48点に改善。病棟内歩行が自立し退院となった。"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={s.fieldBox}>
+          <label style={s.lbl}>数値・期間の補足 <span style={s.opt}>任意</span></label>
+          <textarea style={s.ta} rows={2} value={form.numbers||""} onChange={e=>set("numbers",e.target.value)}
+            placeholder="例：入院期間14日、指導8回実施、退院後3ヶ月観察"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={s.fieldBox}>
+          <label style={s.lbl}>なぜうまくいったと思いますか？ <span style={s.opt}>任意・考察の核になります</span></label>
+          <textarea style={s.ta} rows={3} value={form.uniqueness||""} onChange={e=>set("uniqueness",e.target.value)}
+            placeholder="例：家族を全指導に同席させ実技指導を繰り返したことで介護力が向上した。"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={s.fieldBox}>
+          <label style={s.lbl}>他と違うと感じた点 <span style={s.opt}>任意・新規性の根拠になります</span></label>
+          <textarea style={s.ta} rows={3} value={form.difference||""} onChange={e=>set("difference",e.target.value)}
+            placeholder="例：患者本人だけでなく妻が積極的に質問するようになった。"
+            onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+            onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}} />
+        </div>
+
+        <div style={fb("wordLimit")}>
+          <label style={s.lbl}>抄録の字数制限 <span style={s.req}>必須</span></label>
+          <div style={s.chips}>
+            {WORD_LIMITS.map(o => <Chip key={o} label={o} active={form.wordLimit===o} onClick={() => set("wordLimit",o)} />)}
+          </div>
+        </div>
+      </>}
+
+      {!p && !isConfirm && (
+        <p style={{ color:C.gray400, fontSize:14, textAlign:"center", marginTop:16, padding:"20px 0", fontWeight:600 }}>
+          ↑ まず職種を選択してください
+        </p>
+      )}
+    </>
+  );
 
   return (
     <div style={s.root}>
       {/* トップバー */}
       <div style={s.topBar}>
-        <span style={s.topLogo}>MediWork AI</span>
+        <div style={s.topLeft}>
+          <div style={s.topDot} />
+          <span style={s.topLogo}>MediWork AI</span>
+        </div>
         <span style={s.topBadge}>医療職専用 学会抄録作成ツール</span>
       </div>
 
@@ -411,219 +560,72 @@ export default function App() {
       <div style={s.noticeBanner}>
         <span>⚠️</span>
         <span style={s.noticeText}>
-          本ツールはAIによる文章支援ツールです。生成内容は必ずご自身で確認・修正してください。
-          個人が特定される情報は入力しないでください。診断・治療目的ではありません。
+          本ツールはAIによる文章支援ツールです。生成内容は必ずご自身で確認・修正してください。個人が特定される情報は入力しないでください。診断・治療目的ではありません。
         </span>
       </div>
 
       <div style={s.wrap}>
-        {/* ヒーロー */}
+        {/* ヒーロー（PAGE1のみ） */}
         {page === 1 && (
           <div style={s.hero}>
-            <div style={s.heroTag}>学会発表 AI支援ツール</div>
-            <h1 style={s.heroH1}>学会抄録を、<br />3ステップで完成させる</h1>
+            <div style={s.heroBg} />
+            <div style={s.heroBg2} />
+            <div style={s.heroTag}>
+              <span style={{ color:C.mint }}>●</span> 学会発表 AI支援ツール
+            </div>
+            <h1 style={s.heroH1}>
+              学会抄録を、<br />
+              <span style={s.heroH1Accent}>3ステップ</span>で完成させる
+            </h1>
             <p style={s.heroSub}>
               看護師・PT・OT・STの学会発表に特化した抄録生成ツールです。<br />
               臨床情報を入力するだけで、審査員に伝わる抄録を自動生成します。
             </p>
             <div style={s.heroFeats}>
-              <span style={s.heroFeat}>✅ 職種別テンプレート対応</span>
-              <span style={s.heroFeat}>✅ 字数制限を自動調整</span>
-              <span style={s.heroFeat}>✅ タイトル案3つ生成</span>
-              <span style={s.heroFeat}>✅ 考察・構成を自動整理</span>
+              {[
+                ["✅","職種別テンプレート対応"],
+                ["✅","字数制限を自動調整"],
+                ["✅","タイトル案3つ同時生成"],
+                ["✅","考察・構成を自動整理"],
+              ].map(([icon, text], i) => (
+                <span key={i} style={{ ...s.heroFeat, ...(i%2===1?{ borderRight:"none" }:{}) }}>
+                  <span style={s.heroFeatIcon}>{icon}</span>{text}
+                </span>
+              ))}
             </div>
           </div>
         )}
 
         <Steps />
 
-        {/* ── PAGE 1：入力 ── */}
+        {/* PAGE 1 */}
         {page === 1 && (
           <div style={s.card}>
             <div style={s.cardTitle}>
-              <span>📝</span>発表情報を入力してください
+              <div style={s.cardTitleBar} />
+              発表情報を入力してください
             </div>
             <div style={s.cardSub}>
               必須項目を入力して「確認する」を押してください。任意項目を充実させると抄録の質が上がります。
             </div>
-
-            {/* サンプル読み込みバナー */}
+            <InputForm isConfirm={false} />
             {p && (
-              <div style={s.sampleBanner}>
-                <span style={{ fontSize:20 }}>💡</span>
-                <div>
-                  <div style={s.sampleTitle}>入力例を参考にしますか？</div>
-                  <div style={s.sampleText}>
-                    {PROF_LABEL[p]}向けのサンプルデータを一括入力できます。
-                    どんな内容を書けばいいか迷ったときにご活用ください。
-                  </div>
-                </div>
-                <button style={s.btnSample} onClick={loadSample}>サンプルを読み込む</button>
-              </div>
-            )}
-
-            {/* 職種選択 */}
-            <div style={s.sec}>
-              <label style={s.lbl}>職種 <span style={s.req}>必須</span></label>
-              <div style={s.profGrid}>
-                {PROFS.map(pr => (
-                  <button key={pr.id} onClick={() => set("prof", pr.id)}
-                    style={{ ...s.profCard, ...(form.prof===pr.id ? s.profCardOn : {}) }}>
-                    <span style={s.profIcon}>{pr.icon}</span>
-                    <div>
-                      <div style={s.profLbl}>{pr.label}</div>
-                      <div style={s.profDesc}>{pr.desc}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {p && <>
-              {/* カテゴリ */}
-              <div style={s.sec}>
-                <label style={s.lbl}>発表カテゴリ <span style={s.req}>必須</span></label>
-                <div style={s.chips}>
-                  {CATEGORIES[p].map(o => <Chip key={o} label={o} active={form.category===o} onClick={() => set("category",o)} />)}
-                </div>
-              </div>
-
-              {/* 領域 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>診療科・領域 <span style={s.req}>必須</span></label>
-                <div style={s.chips}>
-                  {FIELDS[p].map(o => <Chip key={o} label={o} active={form.field===o} onClick={() => set("field",o)} />)}
-                </div>
-              </div>
-
-              {/* 疾患 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>疾患・障害名 <span style={s.req}>必須</span></label>
-                <input style={s.inp} value={form.disease||""}
-                  onChange={e=>set("disease",e.target.value)}
-                  placeholder={SAMPLES[p].disease}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 性別・年齢 */}
-              <div style={s.row2}>
-                <div style={s.sec}>
-                  <label style={s.lbl}>性別 <span style={s.opt}>任意</span></label>
-                  <div style={s.chips}>
-                    {GENDERS.map(o => <Chip key={o} label={o} active={form.gender===o} onClick={() => set("gender",o)} />)}
-                  </div>
-                </div>
-                <div style={s.sec}>
-                  <label style={s.lbl}>年齢層 <span style={s.opt}>任意</span></label>
-                  <div style={s.chips}>
-                    {AGE_GROUPS.map(o => <Chip key={o} label={o} active={form.age===o} onClick={() => set("age",o)} />)}
-                  </div>
-                </div>
-              </div>
-
-              {/* タイトルイメージ */}
-              <div style={s.sec}>
-                <label style={s.lbl}>タイトルのイメージ <span style={s.req}>必須</span></label>
-                <p style={s.hint}>キーワードでOKです。AIが3案に展開します</p>
-                <input style={s.inp} value={form.titleImg||""}
-                  onChange={e=>set("titleImg",e.target.value)}
-                  placeholder={SAMPLES[p].titleImg}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 背景 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>背景・動機・気づき <span style={s.req}>必須</span></label>
-                <p style={s.hint}>「なぜこの症例を発表しようと思ったか」「臨床上どんな問題・疑問があったか」を書いてください</p>
-                <textarea style={s.ta} rows={4} value={form.background||""}
-                  onChange={e=>set("background",e.target.value)}
-                  placeholder={SAMPLES[p].background}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 介入 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>介入・取り組みの内容 <span style={s.req}>必須</span></label>
-                <p style={s.hint}>何を・誰に・何回・どのように行ったか。回数・期間・評価指標があると質が上がります</p>
-                <textarea style={s.ta} rows={4} value={form.intervention||""}
-                  onChange={e=>set("intervention",e.target.value)}
-                  placeholder={SAMPLES[p].intervention}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 結果 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>結果・成果 <span style={s.req}>必須</span></label>
-                <p style={s.hint}>数値（評価点数・期間・改善率）があると説得力が大幅に上がります</p>
-                <textarea style={s.ta} rows={4} value={form.result||""}
-                  onChange={e=>set("result",e.target.value)}
-                  placeholder={SAMPLES[p].result}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 数値補足 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>数値・期間の補足 <span style={s.opt}>任意</span></label>
-                <textarea style={s.ta} rows={2} value={form.numbers||""}
-                  onChange={e=>set("numbers",e.target.value)}
-                  placeholder={SAMPLES[p].numbers}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 独自性 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>なぜうまくいったと思いますか？ <span style={s.opt}>任意・考察の核になります</span></label>
-                <textarea style={s.ta} rows={3} value={form.uniqueness||""}
-                  onChange={e=>set("uniqueness",e.target.value)}
-                  placeholder={SAMPLES[p].uniqueness}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 差別化 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>他と違うと感じた点 <span style={s.opt}>任意・新規性の根拠になります</span></label>
-                <textarea style={s.ta} rows={3} value={form.difference||""}
-                  onChange={e=>set("difference",e.target.value)}
-                  placeholder={SAMPLES[p].difference}
-                  onFocus={e=>e.target.style.borderColor="#3b82f6"}
-                  onBlur={e=>e.target.style.borderColor="#e2e8f0"} />
-              </div>
-
-              {/* 字数制限 */}
-              <div style={s.sec}>
-                <label style={s.lbl}>抄録の字数制限 <span style={s.req}>必須</span></label>
-                <div style={s.chips}>
-                  {WORD_LIMITS.map(o => <Chip key={o} label={o} active={form.wordLimit===o} onClick={() => set("wordLimit",o)} />)}
-                </div>
-              </div>
-
-              <button onClick={goConfirm}
-                style={s.btnPrimary}
-                onMouseOver={e=>e.target.style.background="#1e40af"}
-                onMouseOut={e=>e.target.style.background="#1d4ed8"}>
+              <button onClick={goConfirm} style={s.btnPrimary}
+                onMouseOver={e=>e.target.style.background=C.mintDark}
+                onMouseOut={e=>e.target.style.background=C.mint}>
                 内容を確認する →
               </button>
-            </>}
-
-            {!p && (
-              <p style={{ color:"#94a3b8", fontSize:14, textAlign:"center", marginTop:16, padding:"20px 0" }}>
-                ↑ まず職種を選択してください
-              </p>
             )}
           </div>
         )}
 
-        {/* ── PAGE 2：確認 ── */}
+        {/* PAGE 2 */}
         {page === 2 && (
           <div style={s.card}>
-            <div style={s.cardTitle}><span>🔍</span>内容を確認・修正してください</div>
+            <div style={s.cardTitle}>
+              <div style={s.cardTitleBar} />
+              内容を確認・修正してください
+            </div>
 
             {issues.length > 0 ? (
               <div style={s.issueBanner}>
@@ -633,95 +635,12 @@ export default function App() {
               </div>
             ) : (
               <div style={s.okBanner}>
-                <p style={s.okText}>✅ 情報は十分です！このまま生成できます。</p>
+                <span style={{ fontSize:20 }}>✅</span>
+                <p style={s.okText}>情報は十分です！このまま生成できます。</p>
               </div>
             )}
 
-            {/* 確認フォーム */}
-            <div style={fb("prof")}>
-              <label style={s.lbl}>職種</label>
-              <div style={s.profGrid}>
-                {PROFS.map(pr => (
-                  <button key={pr.id} onClick={() => set("prof",pr.id)}
-                    style={{ ...s.profCard, ...(form.prof===pr.id?s.profCardOn:{}) }}>
-                    <span style={s.profIcon}>{pr.icon}</span>
-                    <div><div style={s.profLbl}>{pr.label}</div><div style={s.profDesc}>{pr.desc}</div></div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={fb("category")}>
-              <label style={s.lbl}>発表カテゴリ</label>
-              <div style={s.chips}>
-                {CATEGORIES[p||"nurse"].map(o => <Chip key={o} label={o} active={form.category===o} onClick={() => set("category",o)} />)}
-              </div>
-            </div>
-
-            <div style={fb("field")}>
-              <label style={s.lbl}>診療科・領域</label>
-              <div style={s.chips}>
-                {FIELDS[p||"nurse"].map(o => <Chip key={o} label={o} active={form.field===o} onClick={() => set("field",o)} />)}
-              </div>
-            </div>
-
-            <div style={fb("disease")}>
-              <label style={s.lbl}>疾患・障害名</label>
-              <input style={s.inp} value={form.disease||""} onChange={e=>set("disease",e.target.value)} />
-            </div>
-
-            <div style={{ display:"flex", gap:12 }}>
-              <div style={{ ...fb("gender"), flex:1 }}>
-                <label style={s.lbl}>性別</label>
-                <div style={s.chips}>{GENDERS.map(o => <Chip key={o} label={o} active={form.gender===o} onClick={() => set("gender",o)} />)}</div>
-              </div>
-              <div style={{ ...fb("age"), flex:1 }}>
-                <label style={s.lbl}>年齢層</label>
-                <div style={s.chips}>{AGE_GROUPS.map(o => <Chip key={o} label={o} active={form.age===o} onClick={() => set("age",o)} />)}</div>
-              </div>
-            </div>
-
-            <div style={fb("titleImg")}>
-              <label style={s.lbl}>タイトルのイメージ</label>
-              <input style={s.inp} value={form.titleImg||""} onChange={e=>set("titleImg",e.target.value)} />
-            </div>
-
-            <div style={fb("background")}>
-              <label style={s.lbl}>背景・動機・気づき</label>
-              <textarea style={s.ta} rows={4} value={form.background||""} onChange={e=>set("background",e.target.value)} />
-            </div>
-
-            <div style={fb("intervention")}>
-              <label style={s.lbl}>介入・取り組みの内容</label>
-              <textarea style={s.ta} rows={4} value={form.intervention||""} onChange={e=>set("intervention",e.target.value)} />
-            </div>
-
-            <div style={fb("result")}>
-              <label style={s.lbl}>結果・成果</label>
-              <textarea style={s.ta} rows={4} value={form.result||""} onChange={e=>set("result",e.target.value)} />
-            </div>
-
-            <div style={s.fieldBox}>
-              <label style={s.lbl}>数値・期間の補足</label>
-              <textarea style={s.ta} rows={2} value={form.numbers||""} onChange={e=>set("numbers",e.target.value)} />
-            </div>
-
-            <div style={s.fieldBox}>
-              <label style={s.lbl}>なぜうまくいったか</label>
-              <textarea style={s.ta} rows={3} value={form.uniqueness||""} onChange={e=>set("uniqueness",e.target.value)} />
-            </div>
-
-            <div style={s.fieldBox}>
-              <label style={s.lbl}>他と違うと感じた点</label>
-              <textarea style={s.ta} rows={3} value={form.difference||""} onChange={e=>set("difference",e.target.value)} />
-            </div>
-
-            <div style={fb("wordLimit")}>
-              <label style={s.lbl}>字数制限</label>
-              <div style={s.chips}>
-                {WORD_LIMITS.map(o => <Chip key={o} label={o} active={form.wordLimit===o} onClick={() => set("wordLimit",o)} />)}
-              </div>
-            </div>
+            <InputForm isConfirm={true} />
 
             {error && <div style={s.errMsg}>❌ {error}</div>}
 
@@ -735,11 +654,13 @@ export default function App() {
           </div>
         )}
 
-        {/* ── ローディング ── */}
+        {/* ローディング */}
         {loading && (
           <div style={{ ...s.card, marginTop:0 }}>
             <div style={s.loadWrap}>
-              <div style={s.ring} />
+              <div style={s.ringWrap}>
+                <div style={s.ring} />
+              </div>
               <div style={s.loadTitle}>ただいま作成中...</div>
               <div style={s.loadMsg}>{LOADING_MSGS[loadMsg]}</div>
               <div style={s.loadSub}>抄録・タイトル案を生成しています。少々お待ちください。</div>
@@ -747,72 +668,64 @@ export default function App() {
           </div>
         )}
 
-        {/* ── PAGE 3：完了 ── */}
+        {/* PAGE 3 */}
         {page === 3 && output && (
           <div style={s.card}>
-            {/* 完了ヘッダー */}
             <div style={s.resultHeader}>
               <div>
                 <div style={s.resultTitle}>✅ 抄録が完成しました！</div>
-                <div style={s.resultSub}>
-                  【　】に実際の数値を入れて完成させてください。内容は直接編集できます。
-                </div>
+                <div style={s.resultSub}>【　】に実際の数値を入れて完成させてください。内容は直接編集できます。</div>
               </div>
               <div style={s.actBtns}>
-                <button onClick={generate} style={s.btnRegen}>🔄 再生成</button>
-                <button onClick={reset}    style={s.btnReset}>🆕 最初から</button>
+                <button onClick={generate} style={s.btnRegen}
+                  onMouseOver={e=>e.target.style.background=C.mintPale}
+                  onMouseOut={e=>e.target.style.background=C.white}>
+                  🔄 再生成
+                </button>
+                <button onClick={reset} style={s.btnReset}>🆕 最初から</button>
               </div>
             </div>
 
-            {/* サマリータグ */}
             <div style={s.summary}>
               {[["職種",PROF_LABEL[form.prof]],["カテゴリ",form.category],["診療科",form.field],["疾患",form.disease],["字数",form.wordLimit]]
                 .filter(([,v])=>v).map(([k,v])=><span key={k} style={s.tag}>{k}：{v}</span>)}
             </div>
 
-            {/* 字数カウント */}
             <div style={s.charBar}>
               <span style={s.charLabel}>抄録本文字数</span>
               <CharBadge />
             </div>
 
-            {/* 出力テキストエリア */}
-            <textarea
-              style={s.outputTa} rows={24}
-              value={output}
+            <textarea style={s.outputTa} rows={24} value={output}
               onChange={e => {
                 setOutput(e.target.value);
-                setCharCount(extractAbstractBody(e.target.value).length);
+                const body = e.target.value.match(/【抄録本文】([\s\S]*)/);
+                setCharCount(body ? body[1].trim().length : e.target.value.length);
               }}
-              onFocus={e=>e.target.style.borderColor="#3b82f6"}
-              onBlur={e=>e.target.style.borderColor="#e2e8f0"}
+              onFocus={e=>{e.target.style.borderColor=C.mint;e.target.style.boxShadow=`0 0 0 3px rgba(16,185,129,0.12)`;}}
+              onBlur={e=>{e.target.style.borderColor=C.gray200;e.target.style.boxShadow="none";}}
             />
 
-            {/* 全文コピー */}
-            <button
-              style={{ ...s.copyAllBtn, ...(copiedAll?{ background:"#16a34a" }:{}) }}
-              onClick={() => copyText(output, setCopiedAll)}
-              onMouseOver={e=>{ if(!copiedAll) e.target.style.background="#1e3a5f"; }}
-              onMouseOut={e=>{ if(!copiedAll) e.target.style.background="#1e3a5f"; }}
-            >
+            <button style={{ ...s.copyAllBtn, ...(copiedAll?{background:C.mintDeep}:{}) }}
+              onClick={copyAll}
+              onMouseOver={e=>{ if(!copiedAll) e.target.style.background=C.mintDark; }}
+              onMouseOut={e=>{ if(!copiedAll) e.target.style.background=C.mint; }}>
               {copiedAll ? "✓ コピー完了！" : "📋 全文をコピーする"}
             </button>
 
-            {/* アドバイスカード */}
             <div style={s.adviceCard}>
               <div style={s.adviceTitle}>💡 さらに精度を上げるには</div>
               <div style={s.adviceText}>
-                この抄録をClaude.aiに貼り付けて、以下のように依頼すると仕上がりが上がります：<br />
+                この抄録をClaude.aiに貼り付けて依頼すると仕上がりが上がります：<br />
                 「考察をもっと具体的に」「字数を〇〇字以内に収めて」「タイトルをより新規性のある表現に」
               </div>
             </div>
 
-            {/* 免責事項 */}
             <div style={s.disclaimer}>
               <div style={s.disclaimerT}>⚠️ ご利用にあたって</div>
               <div style={s.disclaimerL}>
                 • 本ツールはAIによる文章支援ツールです。生成内容は必ずご自身で確認・修正してください。<br />
-                • 【　】で示された数値は入力情報に含まれていなかった箇所です。実際の数値に置き換えてください。<br />
+                • 【　】で示された箇所は入力情報に含まれていなかった数値です。実際の数値に置き換えてください。<br />
                 • 患者個人が特定される情報は入力しないでください。<br />
                 • 本ツールは診断・治療を目的としたものではありません。
               </div>
