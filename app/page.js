@@ -288,3 +288,244 @@ export default function App() {
                 <div style={s.sec}>
                   <label style={s.lbl}>性別</label>
                   <div style={s.chips}>
+                    {GENDERS.map(o => <Chip key={o} label={o} active={form.gender===o} onClick={() => set("gender",o)} />)}
+                  </div>
+                </div>
+                <div style={s.sec}>
+                  <label style={s.lbl}>年齢層</label>
+                  <div style={s.chips}>
+                    {AGE_GROUPS.map(o => <Chip key={o} label={o} active={form.age===o} onClick={() => set("age",o)} />)}
+                  </div>
+                </div>
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>タイトルのイメージ <span style={s.req}>必須</span></label>
+                <input style={s.inp} value={form.titleImg||""} onChange={e=>set("titleImg",e.target.value)} placeholder="例：退院指導の工夫、歩行能力改善への取り組み" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>背景・動機・気づき <span style={s.req}>必須</span></label>
+                <p style={s.hint}>なぜこの事例を発表しようと思いましたか？</p>
+                <textarea style={s.ta} rows={5} value={form.background||""} onChange={e=>set("background",e.target.value)}
+                  placeholder="例：標準的なアプローチでは改善が得られなかった。従来の方法に問題があると感じた。" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>介入・取り組みの内容 <span style={s.req}>必須</span></label>
+                <p style={s.hint}>何を・誰に・何回・どのように行ったか具体的に</p>
+                <textarea style={s.ta} rows={5} value={form.intervention||""} onChange={e=>set("intervention",e.target.value)}
+                  placeholder="例：〇〇訓練を週〇回・計〇回実施。評価は〇〇で介入前後を比較した。" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>結果・成果 <span style={s.req}>必須</span></label>
+                <p style={s.hint}>数値を入れると抄録の質が上がります</p>
+                <textarea style={s.ta} rows={5} value={form.result||""} onChange={e=>set("result",e.target.value)}
+                  placeholder="例：〇〇が〇→〇点に改善。〇週後に〇〇が自立し退院となった。" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>数値・期間の補足</label>
+                <textarea style={s.ta} rows={3} value={form.numbers||""} onChange={e=>set("numbers",e.target.value)}
+                  placeholder="例：入院期間14日、退院後3ヶ月観察、指導4回実施" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>なぜうまくいったと思いますか？</label>
+                <p style={s.hint}>直感・主観でOKです。考察の核になります</p>
+                <textarea style={s.ta} rows={3} value={form.uniqueness||""} onChange={e=>set("uniqueness",e.target.value)}
+                  placeholder="例：家族を巻き込んだことで患者の動機が上がったと思う。" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>他と違うと感じた点は何ですか？</label>
+                <textarea style={s.ta} rows={3} value={form.difference||""} onChange={e=>set("difference",e.target.value)}
+                  placeholder="例：患者が自分から質問してきた。退院後も外来で報告してくれた。" />
+              </div>
+
+              <div style={s.sec}>
+                <label style={s.lbl}>抄録の字数制限 <span style={s.req}>必須</span></label>
+                <div style={s.chips}>
+                  {WORD_LIMITS.map(o => <Chip key={o} label={o} active={form.wordLimit===o} onClick={() => set("wordLimit",o)} />)}
+                </div>
+              </div>
+
+              <button onClick={goConfirm} style={s.btnPrimary}>内容を確認する →</button>
+            </>}
+
+            {!p && <p style={{ color:"#64748b", fontSize:14, textAlign:"center", marginTop:20 }}>まず職種を選択してください</p>}
+          </div>
+        )}
+
+        {/* ── PAGE 2：確認 ── */}
+        {page === 2 && (
+          <div style={s.card}>
+            <div style={s.cardTitle}>内容を確認・修正してください</div>
+
+            {issues.length > 0 ? (
+              <div style={s.issueBanner}>
+                <p style={s.issueTitle}>⚠️ {issues.length}件の不足・改善点があります</p>
+                <p style={s.issueSub}>赤枠の項目を修正してから生成してください（スキップも可能です）</p>
+                {issues.map((issue,i) => <p key={i} style={s.issueItem}>• {issue.msg}</p>)}
+              </div>
+            ) : (
+              <div style={s.okBanner}>
+                <p style={s.okText}>✅ 情報は十分です！このまま生成できます。</p>
+              </div>
+            )}
+
+            <div style={fb("prof")}>
+              <label style={s.lbl}>職種</label>
+              <div style={s.profGrid}>
+                {["nurse","pt","ot","st"].map(id => (
+                  <button key={id} onClick={() => set("prof",id)}
+                    style={{ ...s.profCard, ...(form.prof===id?s.profCardOn:{}) }}>
+                    <span style={s.profIcon}>{PROF_ICON[id]}</span>
+                    <span style={s.profLbl}>{PROF_LABEL[id]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={fb("category")}>
+              <label style={s.lbl}>発表カテゴリ</label>
+              <div style={s.chips}>
+                {CATEGORIES[p||"nurse"].map(o => <Chip key={o} label={o} active={form.category===o} onClick={() => set("category",o)} />)}
+              </div>
+            </div>
+
+            <div style={fb("field")}>
+              <label style={s.lbl}>診療科・領域</label>
+              <div style={s.chips}>
+                {FIELDS[p||"nurse"].map(o => <Chip key={o} label={o} active={form.field===o} onClick={() => set("field",o)} />)}
+              </div>
+            </div>
+
+            <div style={fb("disease")}>
+              <label style={s.lbl}>疾患・障害名</label>
+              <input style={s.inp} value={form.disease||""} onChange={e=>set("disease",e.target.value)} />
+            </div>
+
+            <div style={{ display:"flex", gap:12 }}>
+              <div style={{ ...fb("gender"), flex:1 }}>
+                <label style={s.lbl}>性別</label>
+                <div style={s.chips}>
+                  {GENDERS.map(o => <Chip key={o} label={o} active={form.gender===o} onClick={() => set("gender",o)} />)}
+                </div>
+              </div>
+              <div style={{ ...fb("age"), flex:1 }}>
+                <label style={s.lbl}>年齢層</label>
+                <div style={s.chips}>
+                  {AGE_GROUPS.map(o => <Chip key={o} label={o} active={form.age===o} onClick={() => set("age",o)} />)}
+                </div>
+              </div>
+            </div>
+
+            <div style={fb("titleImg")}>
+              <label style={s.lbl}>タイトルのイメージ</label>
+              <input style={s.inp} value={form.titleImg||""} onChange={e=>set("titleImg",e.target.value)} />
+            </div>
+
+            <div style={fb("background")}>
+              <label style={s.lbl}>背景・動機・気づき</label>
+              <textarea style={s.ta} rows={5} value={form.background||""} onChange={e=>set("background",e.target.value)} />
+            </div>
+
+            <div style={fb("intervention")}>
+              <label style={s.lbl}>介入・取り組みの内容</label>
+              <textarea style={s.ta} rows={5} value={form.intervention||""} onChange={e=>set("intervention",e.target.value)} />
+            </div>
+
+            <div style={fb("result")}>
+              <label style={s.lbl}>結果・成果</label>
+              <textarea style={s.ta} rows={5} value={form.result||""} onChange={e=>set("result",e.target.value)} />
+            </div>
+
+            <div style={s.fieldBox}>
+              <label style={s.lbl}>数値・期間の補足</label>
+              <textarea style={s.ta} rows={3} value={form.numbers||""} onChange={e=>set("numbers",e.target.value)} />
+            </div>
+
+            <div style={s.fieldBox}>
+              <label style={s.lbl}>なぜうまくいったか</label>
+              <textarea style={s.ta} rows={3} value={form.uniqueness||""} onChange={e=>set("uniqueness",e.target.value)} />
+            </div>
+
+            <div style={s.fieldBox}>
+              <label style={s.lbl}>他と違うと感じた点</label>
+              <textarea style={s.ta} rows={3} value={form.difference||""} onChange={e=>set("difference",e.target.value)} />
+            </div>
+
+            <div style={fb("wordLimit")}>
+              <label style={s.lbl}>字数制限</label>
+              <div style={s.chips}>
+                {WORD_LIMITS.map(o => <Chip key={o} label={o} active={form.wordLimit===o} onClick={() => set("wordLimit",o)} />)}
+              </div>
+            </div>
+
+            {error && <p style={s.errMsg}>{error}</p>}
+
+            <div style={s.navRow}>
+              <button onClick={() => { setPage(1); window.scrollTo(0,0); }} style={s.btnBack}>← 入力に戻る</button>
+              <button onClick={generate} disabled={loading}
+                style={{ ...s.btnPrimary, ...(loading?s.btnOff:{}), marginTop:0, flex:1 }}>
+                {loading ? (
+                  <span>
+                    ただいま作成中
+                    <span style={{ display:"inline-block", marginLeft:4 }}>...</span>
+                  </span>
+                ) : "抄録を生成する ✦"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── ローディング ── */}
+        {loading && (
+          <div style={{ ...s.card, marginTop:0 }}>
+            <div style={s.loadWrap}>
+              <div style={s.ring} />
+              <div style={s.loadTitle}>ただいま作成中...</div>
+              <div style={s.loadSub}>
+                抄録・タイトル案を生成しています。<br />
+                少々お待ちください。
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── PAGE 3：完了 ── */}
+        {page === 3 && output && (
+          <div style={s.card}>
+            <div style={s.doneTop}>
+              <div>
+                <div style={s.doneTitle}>抄録が完成しました！</div>
+                <div style={s.doneSub}>【　】に自分の数値を入れて完成させてください</div>
+              </div>
+              <div style={s.doneActs}>
+                <button onClick={copy} style={s.btnCopy}>{copied ? "✓ コピー完了" : "📋 全文コピー"}</button>
+                <button onClick={reset} style={s.btnReset}>最初から</button>
+              </div>
+            </div>
+
+            <div style={s.summary}>
+              {[["職種",PROF_LABEL[form.prof]],["カテゴリ",form.category],["診療科",form.field],["疾患",form.disease],["字数",form.wordLimit]]
+                .filter(([,v])=>v).map(([k,v])=><span key={k} style={s.tag}>{k}：{v}</span>)}
+            </div>
+
+            <textarea id="out-ta" readOnly value={output} rows={24} style={s.outputTa}
+              onClick={e=>{ e.target.select(); e.target.setSelectionRange(0,99999); }} />
+
+            <div style={s.tip}>
+              <div style={s.tipTitle}>💡 さらに精度を上げるには</div>
+              <div style={s.tipText}>この内容をClaude.aiに貼り付けて「考察をもっと詳しく」「字数を確認して」と追加依頼すると仕上がりが上がります</div>
+            </div>
+          </div>
+        )}
+
+        <div style={s.footer}>医療職向け 学会抄録サポートツール ｜ MediWork AI</div>
+      </div>
+    </div>
+  );
+}
